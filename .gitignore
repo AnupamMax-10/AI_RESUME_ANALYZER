@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venvapp/
+venv/
+env/
+ENV/
+.venv/
+env.bak/
+venv.bak/
+
+# Streamlit
+.streamlit/
+
+# Uploaded files / User data
+App/Uploaded_Resumes/*
+!App/Uploaded_Resumes/Analyzer Test Resume .pdf
+!App/Uploaded_Resumes/.gitkeep
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Environment variables & secrets
+.env
+.env.*
+*.local
+
+# Logs and databases
+*.log
+*.sqlite3
+*.db
