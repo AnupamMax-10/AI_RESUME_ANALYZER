@@ -43,3 +43,6 @@ $RECYCLE.BIN/
 *.log
 *.sqlite3
 *.db
+
+cloudflared.exe
+*.exe
