@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Resume Analyzer & Career Copilot - Presentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+  @page {
+    size: 16in 9in;
+    margin: 0;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #090d16;
+    color: #f1f5f9;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .slide {
+    width: 16in;
+    height: 9in;
+    padding: 50px 75px 45px 75px;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+    background: #0a0f1d;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Decorative Background Glows */
+  .glow-top-right {
+    position: absolute;
+    top: -150px;
+    right: -150px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(99, 102, 241, 0) 70%);
+    pointer-events: none;
+  }
+
+  .glow-bottom-left {
+    position: absolute;
+    bottom: -150px;
+    left: -150px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.18) 0%, rgba(168, 85, 247, 0) 70%);
+    pointer-events: none;
+  }
+
+  /* Slide Header */
+  .slide-header {
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .pill-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    color: #a5b4fc;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .slide-title {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    line-height: 1.15;
+  }
+
+  .slide-subtitle {
+    font-size: 18px;
+    color: #94a3b8;
+    margin-top: 6px;
+    font-weight: 500;
+  }
+
+  /* Slide Body */
+  .slide-body {
+    flex: 1;
+    display: flex;
+    gap: 30px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Cards */
+  .card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 26px 30px;
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-highlight {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.08) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+  }
+
+  .card-emerald {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+
+  .card-amber {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-p {
+    font-size: 15px;
+    color: #cbd5e1;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  ul.bullet-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  ul.bullet-list li {
+    font-size: 15px;
+    color: #cbd5e1;
+    margin-bottom: 12px;
+    line-height: 1.5;
+    position: relative;
+    padding-left: 24px;
+  }
+
+  ul.bullet-list li::before {
+    content: "▹";
+    position: absolute;
+    left: 0;
+    color: #818cf8;
+    font-size: 18px;
+    line-height: 1;
+    top: 2px;
+  }
+
+  /* Grid Layouts */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    width: 100%;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    width: 100%;
+  }
+
+  .grid-4 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+  }
+
+  /* Stat Chips */
+  .stat-number {
+    font-size: 44px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #a5b4fc 0%, #ffffff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Tables */
+  table.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  table.custom-table th {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  table.custom-table td {
+    padding: 10px 14px;
+    color: #cbd5e1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Slide Footer */
+  .slide-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 16px;
+    font-size: 13px;
+    color: #64748b;
+    position: relative;
+    z-index: 2;
+  }
+
+  .footer-left {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .footer-tag {
+    color: #818cf8;
+    font-weight: 600;
+  }
+
+  .footer-page {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: #94a3b8;
+  }
+
+  /* Code pill */
+  .code-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+  }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: TITLE SLIDE -->
+<div class="slide" style="justify-content: center; align-items: center; text-align: center; padding: 0 100px;">
+  <div class="glow-top-right" style="width:700px; height:700px;"></div>
+  <div class="glow-bottom-left" style="width:700px; height:700px;"></div>
+  
+  <div style="max-width: 1050px; position: relative; z-index: 2;">
+    <div class="pill-badge" style="font-size: 14px; padding: 8px 20px; margin-bottom: 22px;">
+      ⚡ 5th Semester Major Project Presentation
+    </div>
+    
+    <h1 style="font-size: 58px; font-weight: 800; line-height: 1.15; margin-bottom: 18px; letter-spacing: -0.03em; color: #ffffff;">
+      AI Resume Analyzer &amp; Career Copilot
+    </h1>
+    
+    <p style="font-size: 22px; color: #a5b4fc; font-weight: 500; margin-bottom: 40px; line-height: 1.5;">
+      Automated Resume Parsing, Heuristic ATS Compatibility Scoring, Domain Classification &amp; Intelligent Upskilling Roadmaps
+    </p>
+
+    <div style="display: flex; justify-content: center; gap: 40px; margin-bottom: 45px;">
+      <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 16px 30px; text-align: left;">
+        <div style="font-size: 12px; text-transform: uppercase; color: #818cf8; font-weight: 700; letter-spacing: 0.05em;">Presented By</div>
+        <div style="font-size: 20px; font-weight: 700; color: #ffffff; margin-top: 4px;">Anupam Chatterjee</div>
+        <div style="font-size: 13px; color: #94a3b8;">Department of Computer Science &amp; Engineering</div>
+      </div>
+      
+      <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 16px 30px; text-align: left;">
+        <div style="font-size: 12px; text-transform: uppercase; color: #818cf8; font-weight: 700; letter-spacing: 0.05em;">Core Technologies</div>
+        <div style="font-size: 16px; font-weight: 600; color: #ffffff; margin-top: 6px; display: flex; gap: 8px;">
+          <span class="code-tag">Python 3.9</span>
+          <span class="code-tag">SpaCy NLP</span>
+          <span class="code-tag">Streamlit</span>
+          <span class="code-tag">PDFMiner3</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size: 14px; color: #64748b; letter-spacing: 0.05em;">
+      Live Demo &amp; Code Repository: <span style="color: #38bdf8; font-family: 'JetBrains Mono', monospace;">github.com/AnupamMax-10/AI_RESUME_ANALYZER</span>
+    </div>
+  </div>
+
+  <div class="slide-footer" style="position: absolute; bottom: 30px; left: 75px; right: 75px;">
+    <div>Project Examination &amp; Technical Viva Voce</div>
+    <div class="footer-page">Slide 01 / 12</div>
+  </div>
+</div>
+
+<!-- SLIDE 2: PROBLEM STATEMENT & MOTIVATION -->
+<div class="slide">
+  <div class="glow-top-right"></div>
+  <div class="slide-header">
+    <div class="pill-badge">01. Context &amp; Challenge</div>
+    <h2 class="slide-title">Problem Statement &amp; Industry Motivation</h2>
+    <p class="slide-subtitle">Why automated resume intelligence is essential in modern recruitment workflows</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-3" style="width:100%;">
+      <div class="card card-highlight">
+        <div style="font-size: 32px; margin-bottom: 12px;">⏳</div>
+        <div class="card-title">Recruiter Overload</div>
+        <div class="stat-number">7 Sec</div>
+        <div class="stat-label">Average Human Review Time</div>
+        <p class="card-p" style="margin-top: 14px;">
+          Corporate recruiters receive an average of 250+ resumes per job opening. Manual screening is slow, inconsistent, and highly error-prone.
+        </p>
+      </div>
+
+      <div class="card card-amber">
+        <div style="font-size: 32px; margin-bottom: 12px;">🚫</div>
+        <div class="card-title">The ATS Blackbox</div>
+        <div class="stat-number">75%</div>
+        <div class="stat-label">Resumes Rejected by ATS</div>
+        <p class="card-p" style="margin-top: 14px;">
+          Applicant Tracking Systems (ATS) automatically filter candidates. Qualified applicants are rejected due to formatting issues or missing high-frequency keywords.
+        </p>
+      </div>
+
+      <div class="card card-emerald">
+        <div style="font-size: 32px; margin-bottom: 12px;">💡</div>
+        <div class="card-title">The Feedback Void</div>
+        <div class="stat-number">98%</div>
+        <div class="stat-label">Candidates Receive Zero Feedback</div>
+        <p class="card-p" style="margin-top: 14px;">
+          Rejected candidates are left without actionable insights. They do not know what skills are missing or what certifications would bridge the gap.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-left"><span class="footer-tag">AI Resume Analyzer</span> | Problem Statement</div>
+    <div class="footer-page">Slide 02 / 12</div>
+  </div>
+</div>
+
+<!-- SLIDE 3: PROJECT OBJECTIVES -->
+<div class="slide">
+  <div class="glow-top-right"></div>
+  <div class="slide-header">
+    <div class="pill-badge">02. Goals &amp; Scope</div>
+    <h2 class="slide-title">Project Objectives &amp; Solution Overview</h2>
+    <p class="slide-subtitle">Empowering candidates with self-assessment and recruiters with rapid screening</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-2" style="width:100%;">
+      <div class="card">
+        <div class="card-title">🎯 Primary Project Objectives</div>
+        <ul class="bullet-list">
+          <li><strong>Automated PDF Entity Extraction:</strong> Parse raw, multi-column PDF resumes and extract candidate credentials (Name, Email, Mobile, Degree, Skills) without manual entry.</li>
+          <li><strong>Objective ATS Scoring Model:</strong> Develop a transparent heuristic evaluation algorithm (0–100) scoring 9 essential recruiter sections.</li>
+          <li><strong>Predictive Domain Alignment:</strong> Automatically classify applicants into target tech sectors (Data Science, Web Development, Mobile Dev, UI/UX).</li>
+          <li><strong>Actionable Upskilling Recommendations:</strong> Suggest missing domain-critical keywords, curated university-grade courses, and career masterclasses.</li>
+        </ul>
+      </div>
+
+      <div class="card card-highlight">
+        <div class="card-title">🌟 Key Differentiators</div>
+        <ul class="bullet-list">
+          <li><strong>Dual-Mode Database Architecture:</strong> Connects to MySQL locally or falls back seamlessly to SQLite for 100% cloud uptime.</li>
+          <li><strong>Interactive Real-Time Feedback:</strong> Replaced boring static tables with a high-impact Plotly circular score gauge and visual checklist cards.</li>
+          <li><strong>Dual-Sided Platform:</strong> Candidate self-assessment portal on one side; Recruiter administrative analytics hub on the other.</li>
+          <li><strong>24/7 Production Deployment:</strong> Fully hosted on Google Cloud infrastructure via Streamlit Community Cloud.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-left"><span class="footer-tag">AI Resume Analyzer</span> | Objectives</div>
+    <div class="footer-page">Slide 03 / 12</div>
+  </div>
+</div>
+
+<!-- SLIDE 4: SYSTEM ARCHITECTURE -->
+<div class="slide">
+  <div class="glow-top-right"></div>
+  <div class="slide-header">
+    <div class="pill-badge">03. High-Level Design</div>
+    <h2 class="slide-title">System Architecture &amp; Data Pipeline</h2>
+    <p class="slide-subtitle">Modular 4-stage processing pipeline from raw PDF ingestion to interactive analytics</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-4" style="width: 100%;">
+      <div class="card">
+        <div style="font-size: 26px; color: #818cf8; margin-bottom: 8px;">01. Ingestion</div>
+        <div class="card-title" style="font-size: 17px;">Document Parsing</div>
+        <p class="card-p" style="font-size: 13px;">
+          Ingests multi-page PDF documents using <code>pdfminer3</code> with layout preservation and text converter interpreters.
+        </p>
+        <div style="margin-top: auto; padding-top: 10px;">
+          <span class="code-tag">PDFPageInterpreter</span>
+          <span class="code-tag">LAParams</span>
+        </div>
+      </div>
+
+      <div class="card card-highlight">
+        <div style="font-size: 26px; color: #a855f7; margin-bottom: 8px;">02. NLP Engine</div>
+        <div class="card-title" style="font-size: 17px;">Entity &amp; Skill Extraction</div>
+        <p class="card-p" style="font-size: 13px;">
+          SpaCy <code>en_core_web_sm</code> processes tokens, noun chunks, and regex matchers to isolate Name, Degree, and Skills.
+        </p>
+        <div style="margin-top: auto; padding-top: 10px;">
+          <span class="code-tag">SpaCy NER</span>
+          <span class="code-tag">Matcher</span>
+        </div>
+      </div>
+
+      <div class="card card-amber">
+        <div style="font-size: 26px; color: #f59e0b; margin-bottom: 8px;">03. Intelligence</div>
+        <div class="card-title" style="font-size: 17px;">Scoring &amp; Clustering</div>
+        <p class="card-p" style="font-size: 13px;">
+          Heuristic algorithm evaluates 9 resume sections (100 pts) while keyword clusters predict domain and fetch recommended courses.
+        </p>
+        <div style="margin-top: auto; padding-top: 10px;">
+          <span class="code-tag">ATS Engine</span>
+          <span class="code-tag">Taxonomy Map</span>
+        </div>
+      </div>
+
+      <div class="card card-emerald">
+        <div style="font-size: 26px; color: #10b981; margin-bottom: 8px;">04. Persistence</div>
+        <div class="card-title" style="font-size: 17px;">Storage &amp; UI</div>
+        <p class="card-p" style="font-size: 13px;">
+          Persists records to MySQL/SQLite. Streamlit dashboard renders gauge meters, charts, and downloadable CSV reports.
+        </p>
+        <div style="margin-top: auto; padding-top: 10px;">
+          <span class="code-tag">Dual DB</span>
+          <span class="code-tag">Plotly Gauge</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-left"><span class="footer-tag">AI Resume Analyzer</span> | System Architecture</div>
+    <div class="footer-page">Slide 04 / 12</div>
+  </div>
+</div>
+
+<!-- SLIDE 5: TECHNOLOGY STACK -->
+<div class="slide">
+  <div class="glow-top-right"></div>
+  <div class="slide-header">
+    <div class="pill-badge">04. Tech Stack</div>
+    <h2 class="slide-title">Technology Stack &amp; Libraries Used</h2>
+    <p class="slide-subtitle">Battle-tested tools selected for speed, accuracy, and enterprise scalability</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-3" style="width: 100%;">
+      <div class="card">
+        <div class="card-title">🐍 Core &amp; NLP Stack</div>
+        <ul class="bullet-list">
+          <li><strong>Python 3.9:</strong> Stable runtime supporting legacy and modern C-extension wheels.</li>
+          <li><strong>SpaCy v2.3.5:</strong> Industrial NLP framework with Cython speed optimizations.</li>
+          <li><strong>en_core_web_sm:</strong> Pre-trained English linguistic model for entity recognition.</li>
+          <li><strong>NLTK:</strong> Stopwords filtering and English lexical analysis.</li>
+        </ul>
+      </div>
+
+      <div class="card card-highlight">
+        <div class="card-title">🖥️ Presentation &amp; Frontend</div>
+        <ul class="bullet-list">
+          <li><strong>Streamlit:</strong> Reactive Python web application framework with hot-reload state.</li>
+          <li><strong>Plotly Express &amp; Graph Objects:</strong> Interactive circular gauges, pie charts, and distribution metrics.</li>
+          <li><strong>Custom CSS Injection:</strong> Plus Jakarta Sans typography, responsive cards, glassmorphism.</li>
+          <li><strong>Streamlit Tags:</strong> Interactive pill badges for skills.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🗄️ Database &amp; Cloud Infra</div>
+        <ul class="bullet-list">
+          <li><strong>PyMySQL:</strong> Production database connectivity for local relational server.</li>
+          <li><strong>SQLite3:</strong> Zero-configuration embedded fallback for self-contained cloud runs.</li>
+          <li><strong>PDFMiner3:</strong> Robust PDF layout &amp; font boundary parsing.</li>
+          <li><strong>Streamlit Community Cloud:</strong> Containerized Linux cloud hosting.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-left"><span class="footer-tag">AI Resume Analyzer</span> | Technology Stack</div>
+    <div class="footer-page">Slide 05 / 12</div>
+  </div>
+</div>
+
+<!-- SLIDE 6: NLP PIPELINE -->
+<div class="slide">
+  <div class="glow-top-right"></div>
+  <div class="slide-header">
+    <div class="pill-badge">05. Deep Dive</div>
+    <h2 class="slide-title">Natural Language Processing (NLP) Pipeline</h2>
+    <p class="slide-subtitle">How unstructured resume prose is converted into structured candidate attributes</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-2" style="width: 100%;">
+      <div class="card">
+        <div class="card-title">🔍 Information Extraction Mechanism</div>
+        <ul class="bullet-list">
+          <li><strong>Entity Extraction:</strong> SpaCy's Statistical Entity Recognizer maps tokens to categories (<code>PERSON</code>, <code>ORG</code>, <code>GPE</code>).</li>
+          <li><strong>Noun Chunking:</strong> Syntactic dependency parsing groups base noun phrases (e.g. <em>"Convolutional Neural Networks"</em>) rather than single words.</li>
+          <li><strong>Rule-Based Pattern Matcher:</strong> Utilizes <code>spacy.matcher.Matcher</code> to capture variations in phone numbers and email formats using regex.</li>
+          <li><strong>Skills Dictionary Matching:</strong> Extracted tokens are cross-referenced with a comprehensive curated skills dictionary (<code>skills.csv</code>).</li>
+        </ul>
+      </div>
+
+      <div class="card card-highlight">
+        <div class="card-title">⚡ Extraction Flowchart</div>
+        <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 18px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; color: #a5b4fc;">
+          <div>Raw PDF File</div>
+          <div style="color:#64748b;">&nbsp;&nbsp;↓ [pdfminer3 TextConverter]</div>
+          <div>Normalized Raw Text Stream</div>
+          <div style="color:#64748b;">&nbsp;&nbsp;↓ [SpaCy Tokenizer &amp; Stopword Filter]</div>
+          <div>Linguistic Tokens &amp; Noun Chunks</div>
+          <div style="color:#64748b;">&nbsp;&nbsp;↓ [Matcher &amp; Skills Lexicon Lookup]</div>
+          <div style="color: #34d399;">Structured JSON: {Name, Email, Skills, Degree}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-left"><span class="footer-tag">AI Resume Analyzer</span> | NLP Pipeline</div>
+    <div class="footer-page">Slide 06 / 12</div>
+  </div>
+</div>
+
+<!-- SLIDE 7: ATS SCORING MODEL -->
+<div class="slide">
+  <div class="glow-top-right"></div>
+  <div class="slide-header">
+    <div class="pill-badge">06. Core Algorithm</div>
+    <h2 class="slide-title">Predictive ATS Scoring Model</h2>
+    <p class="slide-subtitle">Objective 100-point heuristic formula based on recruiter screening benchmarks</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-2" style="width: 100%;">
+      <div class="card">
+        <div class="card-title">📊 9-Section Recruiter Rubric</div>
+        <table class="custom-table">
+          <thead>
+            <tr><th>Resume Section</th><th>Points</th><th>Recruiter Impact</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Projects Portfolio</strong></td><td style="color:#34d399; font-weight:700;">+19 pts</td><td>Proof of execution &amp; hands-on knowledge</td></tr>
+            <tr><td><strong>Work Experience</strong></td><td style="color:#34d399; font-weight:700;">+16 pts</td><td>Demonstrates practical industry contributions</td></tr>
+            <tr><td><strong>Achievements &amp; Honors</strong></td><td style="color:#34d399; font-weight:700;">+13 pts</td><td>Competitive differentiator from candidate pool</td></tr>
+            <tr><td><strong>Education Credentials</strong></td><td style="color:#34d399; font-weight:700;">+12 pts</td><td>Confirms formal academic qualification</td></tr>
+            <tr><td><strong>Certifications</strong></td><td style="color:#34d399; font-weight:700;">+12 pts</td><td>Signals specialized domain excellence</td></tr>
+            <tr><td><strong>Interests &amp; Hobbies</strong></td><td style="color:#34d399; font-weight:700;">+9 pts</td><td>Team fit and cultural balance</td></tr>
+            <tr><td><strong>Technical Skills</strong></td><td style="color:#34d399; font-weight:700;">+7 pts</td><td>Key for ATS scanner keyword hits</td></tr>
+            <tr><td><strong>Objective / Summary</strong></td><td style="color:#34d399; font-weight:700;">+6 pts</td><td>Clarifies immediate career direction</td></tr>
+            <tr><td><strong>Internships</strong></td><td style="color:#34d399; font-weight:700;">+6 pts</td><td>Real-world team project involvement</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card card-emerald">
+        <div class="card-title">🎯 Score Classification Tiers</div>
+        <div style="margin-top: 10px;">
+          <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 14px; border-radius: 10px; margin-bottom: 14px;">
+            <div style="font-weight: 700; color: #34d399; font-size: 16px;">75 – 100 : High Impact (ATS Ready)</div>
+            <div style="font-size: 13px; color: #cbd5e1; margin-top: 4px;">Resume contains rich project proof, work experience, credentials, and skills. Strong likelihood of passing recruiter screen.</div>
+          </div>
+
+          <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); padding: 14px; border-radius: 10px; margin-bottom: 14px;">
+            <div style="font-weight: 700; color: #fbbf24; font-size: 16px;">50 – 74 : Moderate (Needs Polish)</div>
+            <div style="font-size: 13px; color: #cbd5e1; margin-top: 4px;">Covers basics but lacks certifications, quantifiable achievements, or detailed project portfolios.</div>
+          </div>
+
+          <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); padding: 14px; border-radius: 10px;">
+            <div style="font-weight: 700; color: #f87171; font-size: 16px;">0 – 49 : High Risk (Incomplete)</div>
+            <div style="font-size: 13px; color: #cbd5e1; margin-top: 4px;">Missing multiple critical sections. High risk of automated rejection by enterprise ATS algorithms.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-left"><span class="footer-tag">AI Resume Analyzer</span> | ATS Scoring Model</div>
+    <div class="footer-page">Slide 07 / 12</div>
+  </div>
+</div>
+
+<!-- SLIDE 8: DOMAIN CLASSIFICATION & COURSES -->
+<div class="slide">
+  <div class="glow-top-right"></div>
+  <div class="slide-header">
+    <div class="pill-badge">07. Upskilling</div>
+    <h2 class="slide-title">Domain Prediction &amp; Smart Course Engine</h2>
+    <p class="slide-subtitle">Aligning candidate profiles with tech domains and offering personalized learning paths</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-2" style="width: 100%;">
+      <div class="card">
+        <div class="card-title">🗂️ Keyword Taxonomy Mapping</div>
+        <ul class="bullet-list">
+          <li><strong>Data Science &amp; AI:</strong> Triggered by <em>TensorFlow, Keras, PyTorch, Scikit-learn, Machine Learning, Deep Learning, Streamlit</em>.</li>
+          <li><strong>Web Development:</strong> Triggered by <em>React, Django, Node.js, Express, JavaScript, HTML/CSS, Flask, C#, PHP</em>.</li>
+          <li><strong>Android Development:</strong> Triggered by <em>Kotlin, Android Studio, Flutter, Java, XML, Room, Jetpack Compose</em>.</li>
+          <li><strong>iOS Development:</strong> Triggered by <em>Swift, SwiftUI, Xcode, Cocoa Touch, Objective-C, Combine</em>.</li>
+          <li><strong>UI / UX Design:</strong> Triggered by <em>Figma, Adobe XD, Wireframing, User Research, Prototyping, Zeplin</em>.</li>
+        </ul>
+      </div>
+
+      <div class="card card-highlight">
+        <div class="card-title">🎓 Curated Learning Recommendations</div>
+        <p class="card-p">
+          Once the domain is predicted, the system queries curated repositories from top platforms:
+        </p>
+        <ul class="bullet-list">
+          <li><strong>Google &amp; DeepMind:</strong> Machine Learning Crash Course</li>
+          <li><strong>Coursera (Andrew Ng):</strong> Deep Learning Specialization</li>
+          <li><strong>Udacity Nanodegrees:</strong> Full Stack, Cloud &amp; Mobile Tracks</li>
+          <li><strong>LinkedIn Learning &amp; Udemy:</strong> Top-rated professional certification roadmaps</li>
+          <li><strong>Embedded Video Masterclasses:</strong> Resume optimization &amp; technical interview strategies embedded directly in-app.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-left"><span class="footer-tag">AI Resume Analyzer</span> | Domain Prediction</div>
+    <div class="footer-page">Slide 08 / 12</div>
+  </div>
+</div>
+
+<!-- SLIDE 9: USER INTERFACE & EXPERIENCE -->
+<div class="slide">
+  <div class="glow-top-right"></div>
+  <div class="slide-header">
+    <div class="pill-badge">08. User Experience</div>
+    <h2 class="slide-title">Modernized UI &amp; Candidate Dashboard</h2>
+    <p class="slide-subtitle">Transformed the interface from basic scripts into an intuitive modern SaaS application</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-3" style="width: 100%;">
+      <div class="card">
+        <div class="card-title">🚀 Candidate Workspace</div>
+        <ul class="bullet-list">
+          <li>Clean 3-column input for candidate credentials.</li>
+          <li>Interactive drag-and-drop PDF dropzone.</li>
+          <li>Collapsible PDF preview accordion preventing clutter.</li>
+          <li>Automated geolocation and IP metadata resolution.</li>
+        </ul>
+      </div>
+
+      <div class="card card-highlight">
+        <div class="card-title">📈 Visual Dashboard</div>
+        <ul class="bullet-list">
+          <li><strong>4 KPI Metric Cards:</strong> Real-time score, predicted field, experience tier, and page count.</li>
+          <li><strong>Plotly Gauge Meter:</strong> Dynamic speedometer with safety thresholds and delta pointers.</li>
+          <li><strong>Extracted Profile Card:</strong> Name, Email, Mobile, and Degree summary.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🗂️ 4 Interactive Tabs</div>
+        <ul class="bullet-list">
+          <li><strong>Skill Alignment:</strong> Extracted skills vs system booster tags.</li>
+          <li><strong>ATS Checklist Audit:</strong> Green/yellow cards with point increments.</li>
+          <li><strong>Recommended Courses:</strong> 2-column cards with direct links.</li>
+          <li><strong>Career Masterclasses:</strong> Embedded YouTube video masterclasses.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-left"><span class="footer-tag">AI Resume Analyzer</span> | UI &amp; UX</div>
+    <div class="footer-page">Slide 09 / 12</div>
+  </div>
+</div>
+
+<!-- SLIDE 10: ADMIN INTELLIGENCE HUB -->
+<div class="slide">
+  <div class="glow-top-right"></div>
+  <div class="slide-header">
+    <div class="pill-badge">09. Recruiter Portal</div>
+    <h2 class="slide-title">Admin Intelligence Hub &amp; Visual Analytics</h2>
+    <p class="slide-subtitle">Giving HR teams executive visibility over talent pools and hiring trends</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-2" style="width: 100%;">
+      <div class="card">
+        <div class="card-title">🔐 Centralized Candidate Database</div>
+        <ul class="bullet-list">
+          <li><strong>Authentication Guard:</strong> Secure credentials gate candidate data from unauthorized public access.</li>
+          <li><strong>Comprehensive Candidate Grid:</strong> Searchable records containing parsed name, score, domain, experience, coordinates, and timestamp.</li>
+          <li><strong>One-Click CSV Export:</strong> Instant generation of <code>Candidate_Intelligence_Report.csv</code> for recruitment management systems.</li>
+          <li><strong>Feedback Review:</strong> Candidate sentiment ratings and testimonials log.</li>
+        </ul>
+      </div>
+
+      <div class="card card-highlight">
+        <div class="card-title">📊 Executive Analytics Charts</div>
+        <ul class="bullet-list">
+          <li><strong>Domain Distribution Pie Chart:</strong> Visualizes applicant concentration across Data Science, Web, Mobile, and Design.</li>
+          <li><strong>Experience Level Breakdown:</strong> Proportions of Freshers vs Intermediate vs Experienced talent.</li>
+          <li><strong>Score Range Histograms:</strong> Evaluates overall candidate quality against job threshold benchmarks.</li>
+          <li><strong>Geographic Heatmap:</strong> Tracks applicant origin by City, State, and Country.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-left"><span class="footer-tag">AI Resume Analyzer</span> | Admin Intelligence</div>
+    <div class="footer-page">Slide 10 / 12</div>
+  </div>
+</div>
+
+<!-- SLIDE 11: DEPLOYMENT & TESTING -->
+<div class="slide">
+  <div class="glow-top-right"></div>
+  <div class="slide-header">
+    <div class="pill-badge">10. Production &amp; QA</div>
+    <h2 class="slide-title">Deployment Architecture &amp; System Testing</h2>
+    <p class="slide-subtitle">Zero-downtime dual database failover and permanent cloud hosting</p>
+  </div>
+
+  <div class="slide-body">
+    <div class="grid-3" style="width: 100%;">
+      <div class="card card-highlight">
+        <div class="card-title">🌐 Permanent 24/7 Cloud Link</div>
+        <p class="card-p">
+          Deployed on <strong>Streamlit Community Cloud</strong> with automated GitHub CI/CD integration.
+        </p>
+        <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #38bdf8; word-break: break-all;">
+          https://airesumeanalyzer-ezeedzgjxmv3jgm3e95rrj.streamlit.app/
+        </div>
+      </div>
+
+      <div class="card card-emerald">
+        <div class="card-title">🛡️ Dual-Mode Database Resilience</div>
+        <p class="card-p">
+          Auto-detects MySQL server availability on <code>localhost:3306</code>. If unreachable, falls back to embedded <strong>SQLite</strong> (<code>cv_database.db</code>) with zero crashes.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🧪 Comprehensive Test Scenarios</div>
+        <ul class="bullet-list" style="font-size: 13px;">
+          <li>Tested with single-page fresher resumes.</li>
+          <li>Tested with multi-page senior engineering resumes.</li>
+          <li>Verified offline execution via <code>RUN_APP.bat</code>.</li>
+          <li>Validated cross-browser compatibility (Chrome, Edge, Safari).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="footer-left"><span class="footer-tag">AI Resume Analyzer</span> | Deployment &amp; Testing</div>
+    <div class="footer-page">Slide 11 / 12</div>
+  </div>
+</div>
+
+<!-- SLIDE 12: CONCLUSION & FUTURE SCOPE -->
+<div class="slide" style="justify-content: center; align-items: center; text-align: center; padding: 0 100px;">
+  <div class="glow-top-right" style="width:700px; height:700px;"></div>
+  <div class="glow-bottom-left" style="width:700px; height:700px;"></div>
+
+  <div style="max-width: 1100px; position: relative; z-index: 2;">
+    <div class="pill-badge" style="margin-bottom: 20px;">
+      11. Summary &amp; Future Scope
+    </div>
+
+    <h2 style="font-size: 44px; font-weight: 800; color: #ffffff; margin-bottom: 25px;">
+      Conclusion &amp; Roadmap for Future Work
+    </h2>
+
+    <div class="grid-3" style="text-align: left; margin-bottom: 35px;">
+      <div class="card">
+        <div class="card-title" style="font-size: 16px;">🔍 Optical Character Recognition</div>
+        <p class="card-p" style="font-size: 13px;">
+          Integration of <strong>Tesseract OCR</strong> to support scanned image resumes and non-selectable PDF formats.
+        </p>
+      </div>
+
+      <div class="card card-highlight">
+        <div class="card-title" style="font-size: 16px;">🤖 Transformer Matching</div>
+        <p class="card-p" style="font-size: 13px;">
+          Deploying <strong>BERT / RoBERTa</strong> for semantic cosine similarity between resumes and specific job descriptions (JDs).
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="font-size: 16px;">🎙️ AI Mock Interviewer</div>
+        <p class="card-p" style="font-size: 13px;">
+          Dynamically generating customized technical interview questions derived directly from the candidate's extracted project experience.
+        </p>
+      </div>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 22px 40px; display: inline-block;">
+      <h3 style="font-size: 26px; font-weight: 800; color: #ffffff; margin-bottom: 6px;">Thank You! Any Questions?</h3>
+      <p style="font-size: 15px; color: #94a3b8;">
+        Developed by <strong>Anupam Chatterjee</strong> | GitHub: <span style="color: #38bdf8; font-family: 'JetBrains Mono', monospace;">AnupamMax-10</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="slide-footer" style="position: absolute; bottom: 30px; left: 75px; right: 75px;">
+    <div>Project Presentation &amp; Technical Viva Voce</div>
+    <div class="footer-page">Slide 12 / 12</div>
+  </div>
+</div>
+
+</body>
+</html>
