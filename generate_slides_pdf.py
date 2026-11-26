@@ -1,102 +1,113 @@
 # AI Resume Analyzer & Career Copilot
-# 12-Page Presentation Slide Deck Generator using ReportLab
+# High-Contrast Professional 12-Page Presentation PDF Generator
 
 import os
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import landscape, A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 )
 from reportlab.pdfgen import canvas
 
 PDF_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "AI_Resume_Analyzer_Presentation.pdf")
 
-# Custom Canvas for High-End Presentation Background & Footer
-class PresentationCanvas(canvas.Canvas):
+# Background callbacks executed BEFORE flowables are drawn
+def draw_first_page_bg(canv, doc):
+    w, h = landscape(A4)
+    canv.saveState()
+    # Light crisp gradient background
+    canv.setFillColor(colors.HexColor("#f8fafc"))
+    canv.rect(0, 0, w, h, fill=1, stroke=0)
+    # Subtle modern decorative header band
+    canv.setFillColor(colors.HexColor("#4f46e5"))
+    canv.rect(0, h - 8, w, 8, fill=1, stroke=0)
+    # Bottom subtle accent band
+    canv.setFillColor(colors.HexColor("#e2e8f0"))
+    canv.rect(0, 0, w, 32, fill=1, stroke=0)
+    # Bottom footer text
+    canv.setFont("Helvetica-Bold", 8)
+    canv.setFillColor(colors.HexColor("#4f46e5"))
+    canv.drawString(40, 12, "AI RESUME ANALYZER & CAREER COPILOT")
+    canv.setFont("Helvetica", 8)
+    canv.setFillColor(colors.HexColor("#64748b"))
+    canv.drawString(235, 12, "|   5th Semester Major Project Presentation   |   Author: Anupam Chatterjee")
+    canv.setFont("Helvetica-Bold", 8)
+    canv.drawRightString(w - 40, 12, "Slide 01 / 12")
+    canv.restoreState()
+
+def draw_later_pages_bg(canv, doc):
+    w, h = landscape(A4)
+    canv.saveState()
+    # Light crisp background
+    canv.setFillColor(colors.HexColor("#f8fafc"))
+    canv.rect(0, 0, w, h, fill=1, stroke=0)
+    # Top accent bar
+    canv.setFillColor(colors.HexColor("#4f46e5"))
+    canv.rect(0, h - 6, w, 6, fill=1, stroke=0)
+    # Top divider
+    canv.setStrokeColor(colors.HexColor("#e2e8f0"))
+    canv.setLineWidth(1)
+    canv.line(40, h - 36, w - 40, h - 36)
+    # Bottom divider
+    canv.line(40, 36, w - 40, 36)
+    # Footer Left
+    canv.setFont("Helvetica-Bold", 8)
+    canv.setFillColor(colors.HexColor("#4f46e5"))
+    canv.drawString(40, 18, "AI RESUME ANALYZER & CAREER COPILOT")
+    canv.setFont("Helvetica", 8)
+    canv.setFillColor(colors.HexColor("#64748b"))
+    canv.drawString(235, 18, "|   5th Semester Major Project   |   Author: Anupam Chatterjee")
+    canv.restoreState()
+
+# NumberedCanvas strictly handles dynamic page number text on top of page
+class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pages = []
+        self._saved_page_states = []
 
     def showPage(self):
-        self.pages.append(dict(self.__dict__))
+        self._saved_page_states.append(dict(self.__dict__))
         self._startPage()
 
     def save(self):
-        num_pages = len(self.pages)
-        for page in self.pages:
-            self.__dict__.update(page)
-            self.draw_slide_decorations(num_pages)
+        num_pages = len(self._saved_page_states)
+        w, h = landscape(A4)
+        for state in self._saved_page_states:
+            self.__dict__.update(state)
+            if self._pageNumber > 1:
+                self.saveState()
+                self.setFont("Helvetica-Bold", 9)
+                self.setFillColor(colors.HexColor("#475569"))
+                page_text = f"Slide {self._pageNumber:02d} / {num_pages:02d}"
+                self.drawRightString(w - 40, 18, page_text)
+                self.restoreState()
             super().showPage()
         super().save()
-
-    def draw_slide_decorations(self, total_pages):
-        page_num = self._pageNumber
-        w, h = landscape(A4)
-
-        # 1. Dark Theme Background
-        self.saveState()
-        self.setFillColor(colors.HexColor("#090d16"))
-        self.rect(0, 0, w, h, fill=1, stroke=0)
-
-        # 2. Subtle Glowing Accents in Corners
-        self.setFillColor(colors.HexColor("#1e1b4b"))
-        self.circle(w + 30, h + 30, 160, fill=1, stroke=0)
-        self.circle(-30, -30, 140, fill=1, stroke=0)
-
-        # Slide 1 (Title slide) has special layout, others have standard header/footer
-        if page_num > 1:
-            # Top accent line
-            self.setStrokeColor(colors.HexColor("#312e81"))
-            self.setLineWidth(1)
-            self.line(40, h - 35, w - 40, h - 35)
-
-            # Bottom footer line
-            self.setStrokeColor(colors.HexColor("#1e293b"))
-            self.line(40, 36, w - 40, 36)
-
-            # Footer Left Text
-            self.setFont("Helvetica-Bold", 8)
-            self.setFillColor(colors.HexColor("#818cf8"))
-            self.drawString(40, 22, "AI RESUME ANALYZER & CAREER COPILOT")
-            self.setFont("Helvetica", 8)
-            self.setFillColor(colors.HexColor("#64748b"))
-            self.drawString(225, 22, "|   5th Semester Major Project   |   Author: Anupam Chatterjee")
-
-            # Footer Right: Slide Page Number
-            self.setFont("Helvetica-Bold", 9)
-            self.setFillColor(colors.HexColor("#94a3b8"))
-            page_str = f"Slide {page_num:02d} / {total_pages:02d}"
-            self.drawRightString(w - 40, 22, page_str)
-
-        self.restoreState()
 
 
 def build_pdf():
     w, h = landscape(A4)
-    # 40pt margins, top 45pt, bottom 45pt
     doc = SimpleDocTemplate(
         PDF_PATH,
         pagesize=landscape(A4),
         leftMargin=40,
         rightMargin=40,
-        topMargin=45,
-        bottomMargin=45
+        topMargin=46,
+        bottomMargin=46
     )
 
-    styles = getSampleStyleSheet()
-
-    # Custom Typography Styles
+    # High-contrast, clean typography styles
     style_badge = ParagraphStyle(
         'Badge',
         fontName='Helvetica-Bold',
-        fontSize=8,
-        leading=10,
-        textColor=colors.HexColor("#a5b4fc"),
-        backColor=colors.HexColor("#1e1b4b"),
-        borderPadding=(4, 8, 4, 8),
+        fontSize=8.5,
+        leading=11,
+        textColor=colors.HexColor("#4338ca"),
+        backColor=colors.HexColor("#e0e7ff"),
+        borderPadding=(3, 8, 3, 8),
         borderRadius=4,
-        spaceAfter=6
+        spaceAfter=5
     )
 
     style_title = ParagraphStyle(
@@ -104,7 +115,7 @@ def build_pdf():
         fontName='Helvetica-Bold',
         fontSize=20,
         leading=24,
-        textColor=colors.HexColor("#ffffff"),
+        textColor=colors.HexColor("#0f172a"),
         spaceAfter=3
     )
 
@@ -112,8 +123,8 @@ def build_pdf():
         'SlideSubtitle',
         fontName='Helvetica',
         fontSize=10,
-        leading=13,
-        textColor=colors.HexColor("#94a3b8"),
+        leading=14,
+        textColor=colors.HexColor("#475569"),
         spaceAfter=14
     )
 
@@ -122,32 +133,50 @@ def build_pdf():
         fontName='Helvetica-Bold',
         fontSize=12,
         leading=15,
-        textColor=colors.HexColor("#ffffff"),
-        spaceAfter=6
+        textColor=colors.HexColor("#0f172a"),
+        spaceAfter=8
+    )
+
+    style_stat_num = ParagraphStyle(
+        'StatNum',
+        fontName='Helvetica-Bold',
+        fontSize=24,
+        leading=28,
+        textColor=colors.HexColor("#4338ca"),
+        spaceAfter=3
+    )
+
+    style_stat_label = ParagraphStyle(
+        'StatLabel',
+        fontName='Helvetica-Bold',
+        fontSize=8.5,
+        leading=11,
+        textColor=colors.HexColor("#64748b"),
+        spaceAfter=10
     )
 
     style_body = ParagraphStyle(
         'BodyDark',
         fontName='Helvetica',
         fontSize=9,
-        leading=13,
-        textColor=colors.HexColor("#cbd5e1")
+        leading=13.5,
+        textColor=colors.HexColor("#334155")
     )
 
     style_body_bold = ParagraphStyle(
         'BodyBold',
         fontName='Helvetica-Bold',
         fontSize=9,
-        leading=13,
-        textColor=colors.HexColor("#ffffff")
+        leading=13.5,
+        textColor=colors.HexColor("#0f172a")
     )
 
     style_bullet = ParagraphStyle(
         'BulletDark',
         fontName='Helvetica',
         fontSize=8.5,
-        leading=12.5,
-        textColor=colors.HexColor("#cbd5e1"),
+        leading=13,
+        textColor=colors.HexColor("#334155"),
         leftIndent=12,
         firstLineIndent=-12,
         spaceAfter=4
@@ -158,35 +187,35 @@ def build_pdf():
     # =========================================================================
     # SLIDE 1: COVER / TITLE SLIDE
     # =========================================================================
-    story.append(Spacer(1, 35))
-    story.append(Paragraph("<font color='#818cf8'><b>⚡ 5TH SEMESTER MAJOR PROJECT PRESENTATION</b></font>", ParagraphStyle('H1B', fontName='Helvetica-Bold', fontSize=10, leading=12, alignment=1)))
-    story.append(Spacer(1, 15))
-    story.append(Paragraph("AI Resume Analyzer &amp; Career Copilot", ParagraphStyle('CoverT', fontName='Helvetica-Bold', fontSize=32, leading=38, textColor=colors.HexColor('#ffffff'), alignment=1)))
+    story.append(Spacer(1, 30))
+    story.append(Paragraph("<font color='#4f46e5'><b>⚡ 5TH SEMESTER MAJOR PROJECT PRESENTATION</b></font>", ParagraphStyle('H1B', fontName='Helvetica-Bold', fontSize=11, leading=14, alignment=1)))
+    story.append(Spacer(1, 14))
+    story.append(Paragraph("AI Resume Analyzer &amp; Career Copilot", ParagraphStyle('CoverT', fontName='Helvetica-Bold', fontSize=32, leading=38, textColor=colors.HexColor('#0f172a'), alignment=1)))
     story.append(Spacer(1, 8))
-    story.append(Paragraph("Intelligent Resume Parsing, Automated ATS Scoring, Domain Classification &amp; Smart Learning Paths", ParagraphStyle('CoverSub', fontName='Helvetica', fontSize=12, leading=16, textColor=colors.HexColor('#a5b4fc'), alignment=1)))
+    story.append(Paragraph("Intelligent Resume Parsing, Automated ATS Scoring, Domain Classification &amp; Smart Learning Paths", ParagraphStyle('CoverSub', fontName='Helvetica', fontSize=12, leading=16, textColor=colors.HexColor('#475569'), alignment=1)))
     story.append(Spacer(1, 35))
 
     # Presenter Details Card
     presenter_data = [
         [
-            Paragraph("<b>Presented By:</b><br/><font color='#ffffff'><b>Anupam Chatterjee</b></font><br/><font color='#94a3b8'>Dept. of Computer Science &amp; Engineering</font>", style_body),
-            Paragraph("<b>Core Technologies:</b><br/><font color='#38bdf8'><b>Python 3.9  |  SpaCy NLP  |  Streamlit  |  PDFMiner3</b></font><br/><font color='#94a3b8'>Dual Database Architecture: MySQL + SQLite Fallback</font>", style_body)
+            Paragraph("<b>Presented By:</b><br/><font size='12' color='#0f172a'><b>Anupam Chatterjee</b></font><br/><font color='#64748b'>Dept. of Computer Science &amp; Engineering</font>", style_body),
+            Paragraph("<b>Core Technologies:</b><br/><font color='#4f46e5'><b>Python 3.9  |  SpaCy NLP  |  Streamlit  |  PDFMiner3</b></font><br/><font color='#64748b'>Dual Database Architecture: MySQL + SQLite Fallback</font>", style_body)
         ]
     ]
-    t_presenter = Table(presenter_data, colWidths=[350, 390])
+    t_presenter = Table(presenter_data, colWidths=[360, 390])
     t_presenter.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#131a2a')),
-        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#312e81')),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#ffffff')),
+        ('BOX', (0,0), (-1,-1), 1.5, colors.HexColor('#c7d2fe')),
         ('ROUNDEDCORNERS', [10, 10, 10, 10]),
-        ('TOPPADDING', (0,0), (-1,-1), 14),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 14),
-        ('LEFTPADDING', (0,0), (-1,-1), 18),
-        ('RIGHTPADDING', (0,0), (-1,-1), 18),
+        ('TOPPADDING', (0,0), (-1,-1), 16),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 16),
+        ('LEFTPADDING', (0,0), (-1,-1), 20),
+        ('RIGHTPADDING', (0,0), (-1,-1), 20),
     ]))
     story.append(t_presenter)
 
     story.append(Spacer(1, 35))
-    story.append(Paragraph("<font color='#64748b'>Live Cloud Application: </font><font color='#38bdf8'><b>https://airesumeanalyzer-ezeedzgjxmv3jgm3e95rrj.streamlit.app/</b></font>", ParagraphStyle('CoverRepo', fontName='Helvetica', fontSize=9, leading=12, alignment=1)))
+    story.append(Paragraph("<font color='#475569'>Live Cloud Application: </font><font color='#4f46e5'><b>https://airesumeanalyzer-ezeedzgjxmv3jgm3e95rrj.streamlit.app/</b></font>", ParagraphStyle('CoverRepo', fontName='Helvetica', fontSize=9.5, leading=13, alignment=1)))
     story.append(PageBreak())
 
     # =========================================================================
@@ -194,36 +223,36 @@ def build_pdf():
     # =========================================================================
     story.append(Paragraph("01. CONTEXT &amp; CHALLENGE", style_badge))
     story.append(Paragraph("Problem Statement &amp; Industry Motivation", style_title))
-    story.append(Paragraph("Why manual resume screening fails and how candidates fall through the cracks", style_subtitle))
+    story.append(Paragraph("Why manual resume screening fails and how qualified applicants fall through the cracks", style_subtitle))
 
     p2_c1 = [
-        Paragraph("<font color='#a5b4fc'><b>⏳ RECRUITER OVERLOAD</b></font>", style_card_title),
-        Paragraph("<font size='24' color='#ffffff'><b>7 Seconds</b></font><br/><font color='#818cf8'><b>Average Human Screening Time</b></font>", style_body),
-        Spacer(1, 8),
-        Paragraph("Corporate job openings receive an average of 250+ resumes within 48 hours. Human recruiters are overwhelmed, leading to fatigue, unconscious bias, and high false-rejection rates.", style_body)
+        Paragraph("<font color='#4338ca'><b>⏳ RECRUITER OVERLOAD</b></font>", style_card_title),
+        Paragraph("7 Seconds", ParagraphStyle('S1', parent=style_stat_num, textColor=colors.HexColor('#4338ca'))),
+        Paragraph("AVERAGE SCREENING TIME", style_stat_label),
+        Paragraph("Corporate job openings receive an average of 250+ resumes within 48 hours. Human recruiters are overwhelmed, leading to mental fatigue, bias, and high false-rejection rates.", style_body)
     ]
     p2_c2 = [
-        Paragraph("<font color='#f59e0b'><b>🚫 THE ATS BLACKBOX</b></font>", style_card_title),
-        Paragraph("<font size='24' color='#ffffff'><b>75% Filtered</b></font><br/><font color='#f59e0b'><b>Automated Algorithm Rejection</b></font>", style_body),
-        Spacer(1, 8),
-        Paragraph("Over 75% of resumes are discarded by Applicant Tracking Systems (ATS) before human review due to missing keywords, non-standard section headers, and formatting parsing errors.", style_body)
+        Paragraph("<font color='#b45309'><b>🚫 THE ATS BLACKBOX</b></font>", style_card_title),
+        Paragraph("75% Filtered", ParagraphStyle('S2', parent=style_stat_num, textColor=colors.HexColor('#b45309'))),
+        Paragraph("AUTOMATED ALGORITHM REJECTION", style_stat_label),
+        Paragraph("Over 75% of resumes are discarded by automated Applicant Tracking Systems (ATS) before human review due to missing keywords, non-standard section headers, and formatting errors.", style_body)
     ]
     p2_c3 = [
-        Paragraph("<font color='#10b981'><b>💡 THE GUIDANCE VOID</b></font>", style_card_title),
-        Paragraph("<font size='24' color='#ffffff'><b>Zero Feedback</b></font><br/><font color='#10b981'><b>Unaddressed Skill Gaps</b></font>", style_body),
-        Spacer(1, 8),
-        Paragraph("Rejected job applicants receive standard automated rejection letters with zero explanation. They are left without actionable guidance on what technical skills or certifications to acquire.", style_body)
+        Paragraph("<font color='#047857'><b>💡 THE GUIDANCE VOID</b></font>", style_card_title),
+        Paragraph("Zero Feedback", ParagraphStyle('S3', parent=style_stat_num, textColor=colors.HexColor('#047857'))),
+        Paragraph("UNADDRESSED SKILL GAPS", style_stat_label),
+        Paragraph("Rejected job applicants receive standard automated rejection emails with zero explanation. They are left without actionable guidance on what technical skills or certifications to acquire.", style_body)
     ]
 
-    t_p2 = Table([[p2_c1, p2_c2, p2_c3]], colWidths=[240, 240, 240])
+    t_p2 = Table([[p2_c1, p2_c2, p2_c3]], colWidths=[245, 245, 245])
     t_p2.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#111827')),
-        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#1f2937')),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#ffffff')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#e2e8f0')),
         ('ROUNDEDCORNERS', [8, 8, 8, 8]),
-        ('TOPPADDING', (0,0), (-1,-1), 14),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 14),
-        ('LEFTPADDING', (0,0), (-1,-1), 14),
-        ('RIGHTPADDING', (0,0), (-1,-1), 14),
+        ('TOPPADDING', (0,0), (-1,-1), 16),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 16),
+        ('LEFTPADDING', (0,0), (-1,-1), 16),
+        ('RIGHTPADDING', (0,0), (-1,-1), 16),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
     ]))
     story.append(t_p2)
@@ -240,7 +269,7 @@ def build_pdf():
         Paragraph("<b>🎯 Primary Technical Objectives</b>", style_card_title),
         Spacer(1, 6),
         Paragraph("• <b>Automated PDF Information Ingestion:</b> Accurately extract raw text, contact information, degrees, and technical skills from PDF resumes without manual entry.", style_bullet),
-        Paragraph("• <b>Objective ATS Compatibility Scoring:</b> Implement a clear, deterministic 100-point rubric assessing 9 vital resume sections.", style_bullet),
+        Paragraph("• <b>Objective ATS Compatibility Scoring:</b> Implement a clear, deterministic 100-point rubric assessing 9 vital recruiter evaluation checkpoints.", style_bullet),
         Paragraph("• <b>Predictive Domain Classification:</b> Map parsed technical competencies to appropriate industry career tracks (Data Science, Web, Android, iOS, UI/UX).", style_bullet),
         Paragraph("• <b>Personalized Upskilling Engine:</b> Recommend missing domain keywords and university-grade certification courses to bridge candidate gaps.", style_bullet)
     ]
@@ -256,10 +285,8 @@ def build_pdf():
 
     t_p3 = Table([[p3_left, p3_right]], colWidths=[365, 365])
     t_p3.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (0,0), colors.HexColor('#111827')),
-        ('BACKGROUND', (1,0), (1,0), colors.HexColor('#131a2e')),
-        ('BOX', (0,0), (0,0), 1, colors.HexColor('#1f2937')),
-        ('BOX', (1,0), (1,0), 1, colors.HexColor('#312e81')),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#ffffff')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#e2e8f0')),
         ('ROUNDEDCORNERS', [8, 8, 8, 8]),
         ('TOPPADDING', (0,0), (-1,-1), 16),
         ('BOTTOMPADDING', (0,0), (-1,-1), 16),
@@ -279,10 +306,10 @@ def build_pdf():
 
     p4_cards = [
         [
-            Paragraph("<font color='#818cf8'><b>STAGE 01</b></font><br/><b>PDF Ingestion Layer</b>", style_card_title),
-            Paragraph("<font color='#818cf8'><b>STAGE 02</b></font><br/><b>NLP Extraction Engine</b>", style_card_title),
-            Paragraph("<font color='#818cf8'><b>STAGE 03</b></font><br/><b>Intelligence &amp; Scoring</b>", style_card_title),
-            Paragraph("<font color='#818cf8'><b>STAGE 04</b></font><br/><b>Presentation &amp; DB</b>", style_card_title)
+            Paragraph("<font color='#4f46e5'><b>STAGE 01</b></font><br/><b>PDF Ingestion</b>", style_card_title),
+            Paragraph("<font color='#4f46e5'><b>STAGE 02</b></font><br/><b>NLP Extraction</b>", style_card_title),
+            Paragraph("<font color='#4f46e5'><b>STAGE 03</b></font><br/><b>Scoring &amp; AI</b>", style_card_title),
+            Paragraph("<font color='#4f46e5'><b>STAGE 04</b></font><br/><b>UI &amp; Storage</b>", style_card_title)
         ],
         [
             Paragraph("• PDF file upload via Streamlit<br/>• File byte-buffer caching<br/>• <b>pdfminer3</b> layout preservation<br/>• Raw text stream extraction", style_body),
@@ -291,15 +318,15 @@ def build_pdf():
             Paragraph("• Dual DB (MySQL / SQLite)<br/>• Plotly circular gauge meter<br/>• 4 Tabbed candidate insights<br/>• Admin BI dashboard<br/>• One-click CSV export", style_body)
         ]
     ]
-    t_p4 = Table(p4_cards, colWidths=[180, 180, 180, 180])
+    t_p4 = Table(p4_cards, colWidths=[185, 185, 185, 185])
     t_p4.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#111827')),
-        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#1f2937')),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#ffffff')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#e2e8f0')),
         ('ROUNDEDCORNERS', [8, 8, 8, 8]),
-        ('TOPPADDING', (0,0), (-1,-1), 12),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 12),
-        ('LEFTPADDING', (0,0), (-1,-1), 12),
-        ('RIGHTPADDING', (0,0), (-1,-1), 12),
+        ('TOPPADDING', (0,0), (-1,-1), 14),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 14),
+        ('LEFTPADDING', (0,0), (-1,-1), 14),
+        ('RIGHTPADDING', (0,0), (-1,-1), 14),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
     ]))
     story.append(t_p4)
@@ -324,7 +351,7 @@ def build_pdf():
         Paragraph("<b>🖥️ Frontend &amp; Visualization</b>", style_card_title),
         Paragraph("• <b>Streamlit:</b> Reactive Python web framework with stateful component re-rendering.", style_bullet),
         Paragraph("• <b>Plotly Express &amp; GO:</b> Interactive circular gauges, donut charts, and histograms.", style_bullet),
-        Paragraph("• <b>Custom CSS Injection:</b> Modern typography (Plus Jakarta Sans) and glassmorphism cards.", style_bullet),
+        Paragraph("• <b>Custom CSS Injection:</b> Modern typography (Plus Jakarta Sans) and card layouts.", style_bullet),
         Paragraph("• <b>Streamlit Tags:</b> Interactive chip badges rendering extracted and suggested skills.", style_bullet)
     ]
     p5_c3 = [
@@ -335,10 +362,10 @@ def build_pdf():
         Paragraph("• <b>Git &amp; GitHub:</b> Version control and automated continuous deployment.", style_bullet)
     ]
 
-    t_p5 = Table([[p5_c1, p5_c2, p5_c3]], colWidths=[240, 240, 240])
+    t_p5 = Table([[p5_c1, p5_c2, p5_c3]], colWidths=[245, 245, 245])
     t_p5.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#111827')),
-        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#1f2937')),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#ffffff')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#e2e8f0')),
         ('ROUNDEDCORNERS', [8, 8, 8, 8]),
         ('TOPPADDING', (0,0), (-1,-1), 14),
         ('BOTTOMPADDING', (0,0), (-1,-1), 14),
@@ -368,22 +395,22 @@ def build_pdf():
     p6_right = [
         Paragraph("<b>📄 Sample Parsed Output Structure</b>", style_card_title),
         Paragraph(
-            "<font color='#38bdf8'><b>{</b></font><br/>"
-            "&nbsp;&nbsp;<font color='#a5b4fc'>\"name\"</font>: <font color='#34d399'>\"Anupam Chatterjee\"</font>,<br/>"
-            "&nbsp;&nbsp;<font color='#a5b4fc'>\"email\"</font>: <font color='#34d399'>\"anupam@example.com\"</font>,<br/>"
-            "&nbsp;&nbsp;<font color='#a5b4fc'>\"mobile_number\"</font>: <font color='#34d399'>\"+91 9876543210\"</font>,<br/>"
-            "&nbsp;&nbsp;<font color='#a5b4fc'>\"degree\"</font>: <font color='#34d399'>[\"B.Tech in Computer Science\"]</font>,<br/>"
-            "&nbsp;&nbsp;<font color='#a5b4fc'>\"no_of_pages\"</font>: <font color='#f59e0b'>2</font>,<br/>"
-            "&nbsp;&nbsp;<font color='#a5b4fc'>\"skills\"</font>: <font color='#34d399'>[\"Python\", \"Machine Learning\", \"TensorFlow\", \"Docker\", \"SQL\"]</font><br/>"
-            "<font color='#38bdf8'><b>}</b></font>",
-            ParagraphStyle('CodeBlock', fontName='Courier', fontSize=9, leading=14, textColor=colors.HexColor('#ffffff'), backColor=colors.HexColor('#090d16'), borderPadding=(10,12,10,12), borderRadius=6)
+            "<font color='#0f172a'><b>{</b></font><br/>"
+            "&nbsp;&nbsp;<font color='#4338ca'>\"name\"</font>: <font color='#047857'>\"Anupam Chatterjee\"</font>,<br/>"
+            "&nbsp;&nbsp;<font color='#4338ca'>\"email\"</font>: <font color='#047857'>\"anupam@example.com\"</font>,<br/>"
+            "&nbsp;&nbsp;<font color='#4338ca'>\"mobile_number\"</font>: <font color='#047857'>\"+91 9876543210\"</font>,<br/>"
+            "&nbsp;&nbsp;<font color='#4338ca'>\"degree\"</font>: <font color='#047857'>[\"B.Tech in Computer Science\"]</font>,<br/>"
+            "&nbsp;&nbsp;<font color='#4338ca'>\"no_of_pages\"</font>: <font color='#b45309'>2</font>,<br/>"
+            "&nbsp;&nbsp;<font color='#4338ca'>\"skills\"</font>: <font color='#047857'>[\"Python\", \"Machine Learning\", \"TensorFlow\", \"Docker\", \"SQL\"]</font><br/>"
+            "<font color='#0f172a'><b>}</b></font>",
+            ParagraphStyle('CodeBlock', fontName='Courier', fontSize=9, leading=14, textColor=colors.HexColor('#0f172a'), backColor=colors.HexColor('#f1f5f9'), borderPadding=(10,12,10,12), borderRadius=6)
         )
     ]
 
     t_p6 = Table([[p6_left, p6_right]], colWidths=[400, 330])
     t_p6.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#111827')),
-        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#1f2937')),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#ffffff')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#e2e8f0')),
         ('ROUNDEDCORNERS', [8, 8, 8, 8]),
         ('TOPPADDING', (0,0), (-1,-1), 16),
         ('BOTTOMPADDING', (0,0), (-1,-1), 16),
@@ -403,22 +430,22 @@ def build_pdf():
 
     table_data = [
         [Paragraph("<b>Resume Section</b>", style_body_bold), Paragraph("<b>Weight</b>", style_body_bold), Paragraph("<b>Recruiter Evaluation Focus</b>", style_body_bold)],
-        [Paragraph("Projects Portfolio", style_body), Paragraph("<font color='#34d399'><b>+19 pts</b></font>", style_body), Paragraph("Demonstrates real-world problem solving and applied knowledge", style_body)],
-        [Paragraph("Work Experience", style_body), Paragraph("<font color='#34d399'><b>+16 pts</b></font>", style_body), Paragraph("Validates corporate delivery, teamwork, and accountability", style_body)],
-        [Paragraph("Achievements &amp; Honors", style_body), Paragraph("<font color='#34d399'><b>+13 pts</b></font>", style_body), Paragraph("Signals competitive excellence and peer recognition", style_body)],
-        [Paragraph("Educational Credentials", style_body), Paragraph("<font color='#34d399'><b>+12 pts</b></font>", style_body), Paragraph("Confirms formal academic qualifications and foundations", style_body)],
-        [Paragraph("Certifications &amp; Courses", style_body), Paragraph("<font color='#34d399'><b>+12 pts</b></font>", style_body), Paragraph("Proves ongoing self-initiative and specialized domain skills", style_body)],
-        [Paragraph("Interests &amp; Extracurriculars", style_body), Paragraph("<font color='#34d399'><b>+9 pts</b></font>", style_body), Paragraph("Provides insight into personality and cultural team fit", style_body)],
-        [Paragraph("Technical Skills Section", style_body), Paragraph("<font color='#34d399'><b>+7 pts</b></font>", style_body), Paragraph("Core requirement for automated keyword matching queries", style_body)],
-        [Paragraph("Career Objective / Summary", style_body), Paragraph("<font color='#34d399'><b>+6 pts</b></font>", style_body), Paragraph("Communicates clear professional intent and immediate focus", style_body)],
-        [Paragraph("Internship Experience", style_body), Paragraph("<font color='#34d399'><b>+6 pts</b></font>", style_body), Paragraph("Validates transitional capability from academia to industry", style_body)],
+        [Paragraph("Projects Portfolio", style_body), Paragraph("<font color='#047857'><b>+19 pts</b></font>", style_body), Paragraph("Demonstrates real-world problem solving and applied knowledge", style_body)],
+        [Paragraph("Work Experience", style_body), Paragraph("<font color='#047857'><b>+16 pts</b></font>", style_body), Paragraph("Validates corporate delivery, teamwork, and accountability", style_body)],
+        [Paragraph("Achievements &amp; Honors", style_body), Paragraph("<font color='#047857'><b>+13 pts</b></font>", style_body), Paragraph("Signals competitive excellence and peer recognition", style_body)],
+        [Paragraph("Educational Credentials", style_body), Paragraph("<font color='#047857'><b>+12 pts</b></font>", style_body), Paragraph("Confirms formal academic qualifications and foundations", style_body)],
+        [Paragraph("Certifications &amp; Courses", style_body), Paragraph("<font color='#047857'><b>+12 pts</b></font>", style_body), Paragraph("Proves ongoing self-initiative and specialized domain skills", style_body)],
+        [Paragraph("Interests &amp; Extracurriculars", style_body), Paragraph("<font color='#047857'><b>+9 pts</b></font>", style_body), Paragraph("Provides insight into personality and cultural team fit", style_body)],
+        [Paragraph("Technical Skills Section", style_body), Paragraph("<font color='#047857'><b>+7 pts</b></font>", style_body), Paragraph("Core requirement for automated keyword matching queries", style_body)],
+        [Paragraph("Career Objective / Summary", style_body), Paragraph("<font color='#047857'><b>+6 pts</b></font>", style_body), Paragraph("Communicates clear professional intent and immediate focus", style_body)],
+        [Paragraph("Internship Experience", style_body), Paragraph("<font color='#047857'><b>+6 pts</b></font>", style_body), Paragraph("Validates transitional capability from academia to industry", style_body)],
     ]
     t_scoring = Table(table_data, colWidths=[200, 90, 440])
     t_scoring.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1e1b4b')),
-        ('BACKGROUND', (0,1), (-1,-1), colors.HexColor('#111827')),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#1f2937')),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.HexColor('#111827'), colors.HexColor('#131d2e')]),
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#e0e7ff')),
+        ('BACKGROUND', (0,1), (-1,-1), colors.HexColor('#ffffff')),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.HexColor('#ffffff'), colors.HexColor('#f8fafc')]),
         ('TOPPADDING', (0,0), (-1,-1), 4.5),
         ('BOTTOMPADDING', (0,0), (-1,-1), 4.5),
         ('LEFTPADDING', (0,0), (-1,-1), 10),
@@ -453,8 +480,8 @@ def build_pdf():
 
     t_p8 = Table([[p8_left, p8_right]], colWidths=[365, 365])
     t_p8.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#111827')),
-        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#1f2937')),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#ffffff')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#e2e8f0')),
         ('ROUNDEDCORNERS', [8, 8, 8, 8]),
         ('TOPPADDING', (0,0), (-1,-1), 16),
         ('BOTTOMPADDING', (0,0), (-1,-1), 16),
@@ -485,10 +512,10 @@ def build_pdf():
         Paragraph("• <b>Skill Alignment:</b> Detected tags vs booster keywords.<br/>• <b>ATS Checklist Audit:</b> Green/amber breakdown cards.<br/>• <b>Recommended Courses:</b> 2-column card links.<br/>• <b>Career Masterclasses:</b> Embedded video players.", style_body)
     ]
 
-    t_p9 = Table([[p9_c1, p9_c2, p9_c3]], colWidths=[240, 240, 240])
+    t_p9 = Table([[p9_c1, p9_c2, p9_c3]], colWidths=[245, 245, 245])
     t_p9.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#111827')),
-        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#1f2937')),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#ffffff')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#e2e8f0')),
         ('ROUNDEDCORNERS', [8, 8, 8, 8]),
         ('TOPPADDING', (0,0), (-1,-1), 14),
         ('BOTTOMPADDING', (0,0), (-1,-1), 14),
@@ -524,8 +551,8 @@ def build_pdf():
 
     t_p10 = Table([[p10_left, p10_right]], colWidths=[365, 365])
     t_p10.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#111827')),
-        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#1f2937')),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#ffffff')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#e2e8f0')),
         ('ROUNDEDCORNERS', [8, 8, 8, 8]),
         ('TOPPADDING', (0,0), (-1,-1), 16),
         ('BOTTOMPADDING', (0,0), (-1,-1), 16),
@@ -545,7 +572,7 @@ def build_pdf():
 
     p11_c1 = [
         Paragraph("<b>🌐 24/7 Cloud Deployment</b>", style_card_title),
-        Paragraph("Hosted on Google Cloud infrastructure via <b>Streamlit Community Cloud</b>.<br/><br/>Live URL:<br/><font color='#38bdf8'><b>https://airesumeanalyzer-ezeedzgjxmv3jgm3e95rrj.streamlit.app/</b></font>", style_body)
+        Paragraph("Hosted on Google Cloud infrastructure via <b>Streamlit Community Cloud</b>.<br/><br/>Live URL:<br/><font color='#4f46e5'><b>https://airesumeanalyzer-ezeedzgjxmv3jgm3e95rrj.streamlit.app/</b></font>", style_body)
     ]
     p11_c2 = [
         Paragraph("<b>🛡️ Dual-Mode Database</b>", style_card_title),
@@ -556,10 +583,10 @@ def build_pdf():
         Paragraph("• Verified across multiple resume formats (Fresher, Intermediate, Senior).<br/>• Tested offline local launcher (<code>RUN_APP.bat</code>).<br/>• Validated cross-browser UI responsiveness.", style_body)
     ]
 
-    t_p11 = Table([[p11_c1, p11_c2, p11_c3]], colWidths=[240, 240, 240])
+    t_p11 = Table([[p11_c1, p11_c2, p11_c3]], colWidths=[245, 245, 245])
     t_p11.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#111827')),
-        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#1f2937')),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#ffffff')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#e2e8f0')),
         ('ROUNDEDCORNERS', [8, 8, 8, 8]),
         ('TOPPADDING', (0,0), (-1,-1), 14),
         ('BOTTOMPADDING', (0,0), (-1,-1), 14),
@@ -574,9 +601,9 @@ def build_pdf():
     # SLIDE 12: CONCLUSION & FUTURE SCOPE
     # =========================================================================
     story.append(Spacer(1, 25))
-    story.append(Paragraph("<font color='#818cf8'><b>11. SUMMARY &amp; ROADMAP</b></font>", ParagraphStyle('CBadge', fontName='Helvetica-Bold', fontSize=9, leading=11, alignment=1)))
+    story.append(Paragraph("<font color='#4f46e5'><b>11. SUMMARY &amp; ROADMAP</b></font>", ParagraphStyle('CBadge', fontName='Helvetica-Bold', fontSize=9, leading=11, alignment=1)))
     story.append(Spacer(1, 10))
-    story.append(Paragraph("Conclusion &amp; Future Scope", ParagraphStyle('CTitle', fontName='Helvetica-Bold', fontSize=26, leading=30, textColor=colors.HexColor('#ffffff'), alignment=1)))
+    story.append(Paragraph("Conclusion &amp; Future Scope", ParagraphStyle('CTitle', fontName='Helvetica-Bold', fontSize=26, leading=30, textColor=colors.HexColor('#0f172a'), alignment=1)))
     story.append(Spacer(1, 20))
 
     p12_c1 = [
@@ -591,10 +618,10 @@ def build_pdf():
         Paragraph("<b>🎙️ Dynamic AI Mock Interviewer</b>", style_card_title),
         Paragraph("Generating custom viva and technical interview questions based directly on the candidate's extracted project experience.", style_body)
     ]
-    t_p12 = Table([[p12_c1, p12_c2, p12_c3]], colWidths=[240, 240, 240])
+    t_p12 = Table([[p12_c1, p12_c2, p12_c3]], colWidths=[245, 245, 245])
     t_p12.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#111827')),
-        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#1f2937')),
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#ffffff')),
+        ('BOX', (0,0), (-1,-1), 1, colors.HexColor('#e2e8f0')),
         ('ROUNDEDCORNERS', [8, 8, 8, 8]),
         ('TOPPADDING', (0,0), (-1,-1), 14),
         ('BOTTOMPADDING', (0,0), (-1,-1), 14),
@@ -605,13 +632,18 @@ def build_pdf():
     story.append(t_p12)
 
     story.append(Spacer(1, 30))
-    story.append(Paragraph("<b>Thank You! Any Questions?</b>", ParagraphStyle('TY', fontName='Helvetica-Bold', fontSize=22, leading=26, textColor=colors.HexColor('#ffffff'), alignment=1)))
+    story.append(Paragraph("<b>Thank You! Any Questions?</b>", ParagraphStyle('TY', fontName='Helvetica-Bold', fontSize=22, leading=26, textColor=colors.HexColor('#0f172a'), alignment=1)))
     story.append(Spacer(1, 6))
-    story.append(Paragraph("<font color='#94a3b8'>Project Developer: <b>Anupam Chatterjee</b>  |  GitHub: <font color='#38bdf8'>AnupamMax-10</font></font>", ParagraphStyle('TY2', fontName='Helvetica', fontSize=10, leading=14, alignment=1)))
+    story.append(Paragraph("<font color='#64748b'>Project Developer: <b>Anupam Chatterjee</b>  |  GitHub: <font color='#4f46e5'>AnupamMax-10</font></font>", ParagraphStyle('TY2', fontName='Helvetica', fontSize=10, leading=14, alignment=1)))
 
-    # Build the PDF document
-    doc.build(story, canvasmaker=PresentationCanvas)
-    print("PDF build successful:", PDF_PATH)
+    # Build document with callbacks that draw background BEFORE story
+    doc.build(
+        story,
+        canvasmaker=NumberedCanvas,
+        onFirstPage=draw_first_page_bg,
+        onLaterPages=draw_later_pages_bg
+    )
+    print("New high-contrast PDF successfully built:", PDF_PATH)
 
 if __name__ == "__main__":
     build_pdf()
